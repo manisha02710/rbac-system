@@ -42,6 +42,7 @@ test_stu2.txt
 ASSIGNMENT 3.pdf
 assignement pic.jpeg
 *.pdf
+!docs/*.pdf
 *.jpeg
 *.jpg
 *.png

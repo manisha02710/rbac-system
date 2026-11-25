@@ -9,6 +9,8 @@ A robust, enterprise-grade Role-Based Access Control (RBAC) and Student Academic
 ```
 .
 ├── database/            # Database schema & seed SQL scripts (MySQL 8)
+├── docs/                # Project reports and documentation
+│   └── RBAC_Project_Report.pdf  # Comprehensive OOPS & DBMS Project Report
 ├── rbac-console/        # Console Edition (Java 17 CLI + JDBC application)
 ├── rbac-system/         # Web Edition (Spring Boot 3 + Spring JDBC + Thymeleaf)
 ├── DOCUMENTATION.md     # Detailed OOP & DBMS Architecture Documentation
