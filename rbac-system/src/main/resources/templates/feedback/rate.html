@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Rate Faculty')}">
+    <title>Rate Faculty</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="app-container">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="app-content">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Portal</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/student/complaints}">Feedback / Complaints</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Rate Faculty</li>
+            </ol>
+        </nav>
+
+        <!-- Navigation Tabs between Complaints and Rate Faculty -->
+        <ul class="nav nav-tabs border-secondary mb-4">
+            <li class="nav-item">
+                <a class="nav-link text-white-50" th:href="@{/student/complaints}">
+                    <i class="bi bi-chat-left-dots me-1"></i> My Complaints &amp; Inquiries
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active bg-danger text-white border-danger" th:href="@{/feedback/rate}">
+                    <i class="bi bi-star-half me-1"></i> Rate Faculty &amp; Teaching
+                </a>
+            </li>
+        </ul>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1 text-white">Rate Faculty &amp; Course Feedback</h1>
+                <p class="text-muted mb-0">Submit anonymous ratings and constructive course evaluation for your instructors</p>
+            </div>
+        </div>
+
+        <!-- Flash messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+            <span th:text="${success}">Success message</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i>
+            <span th:text="${error}">Error message</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="row g-4">
+            <!-- Feedback Form Card -->
+            <div class="col-lg-5">
+                <div class="card card-theme p-4 border-danger">
+                    <h5 class="text-white fw-bold mb-3"><i class="bi bi-pencil-square text-danger me-2"></i>Submit Faculty Rating</h5>
+                    <div class="alert alert-dark border-secondary py-2 small mb-3 text-white-50">
+                        <i class="bi bi-shield-lock-fill text-warning me-1"></i> <strong>100% Anonymous:</strong> Faculty and administrators will never see your name or student ID attached to this feedback.
+                    </div>
+                    <form th:action="@{/feedback/submit}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label text-white-50">Instructor / Faculty Member <span class="text-danger">*</span></label>
+                            <select name="facultyId" class="form-select" required>
+                                <option value="">-- Choose Instructor --</option>
+                                <option th:each="f : ${facultyList}" th:value="${f.id}" th:text="${f.facultyName + (f.departmentName != null ? ' (' + f.departmentName + ')' : '')}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-white-50">Course <span class="text-danger">*</span></label>
+                            <select name="courseId" class="form-select" required>
+                                <option value="">-- Choose Course --</option>
+                                <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.courseCode + ' - ' + c.courseName}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-white-50">Rating (1 to 5 Stars) <span class="text-danger">*</span></label>
+                            <select name="rating" class="form-select" required>
+                                <option value="5" selected>⭐⭐⭐⭐⭐ (5 - Excellent)</option>
+                                <option value="4">⭐⭐⭐⭐ (4 - Very Good)</option>
+                                <option value="3">⭐⭐⭐ (3 - Satisfactory)</option>
+                                <option value="2">⭐⭐ (2 - Needs Improvement)</option>
+                                <option value="1">⭐ (1 - Unsatisfactory)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-white-50">Constructive Comments &amp; Notes (Optional)</label>
+                            <textarea name="comments" class="form-control" rows="4" placeholder="Share your experience regarding teaching methodology, clarity, pace, or responsiveness..."></textarea>
+                            <div class="form-text text-muted">Submitting again for the same course &amp; instructor will update your previous rating.</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-send-fill me-1"></i> Submit Evaluation
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Existing Feedback by Student -->
+            <div class="col-lg-7">
+                <div class="card card-theme p-4 h-100">
+                    <h5 class="text-white fw-bold mb-3"><i class="bi bi-clock-history text-danger me-2"></i>My Submitted Evaluations</h5>
+                    <div th:if="${#lists.isEmpty(myFeedback)}" class="text-center py-5 text-muted">
+                        <i class="bi bi-chat-heart fs-1 d-block mb-3 text-secondary"></i>
+                        <h6 class="text-white fw-bold">No Evaluations Submitted Yet</h6>
+                        <p class="small mb-0">Use the form on the left to submit an evaluation for any of your courses.</p>
+                    </div>
+                    <div th:unless="${#lists.isEmpty(myFeedback)}" class="table-responsive">
+                        <table class="table table-hover table-theme mb-0 align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Instructor &amp; Course</th>
+                                    <th>Rating</th>
+                                    <th>Your Comment</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="fb : ${myFeedback}">
+                                    <td>
+                                        <div class="fw-bold text-white" th:text="${fb.facultyName}">Faculty Name</div>
+                                        <div class="small text-muted" th:text="${fb.courseCode + ' - ' + fb.courseName}">CS101</div>
+                                    </td>
+                                    <td>
+                                        <span class="text-warning fw-bold fs-6">
+                                            <th:block th:each="i : ${#numbers.sequence(1, fb.rating)}">★</th:block>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="small text-white-50" th:text="${fb.comments != null and !fb.comments.isBlank() ? fb.comments : 'No comments added.'}">Comments</span>
+                                    </td>
+                                    <td>
+                                        <span class="small text-muted" th:text="${#temporals.format(fb.createdAt, 'dd MMM yyyy')}">Date</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

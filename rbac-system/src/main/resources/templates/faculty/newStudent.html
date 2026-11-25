@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Register New Student')}">
+    <title>Register New Student</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="app-container">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="app-content" th:fragment="content">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Portal</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/faculty/students}">Students</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Add Student</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1 text-white">Add New Student</h1>
+                <p class="text-muted mb-0">Create student user account and academic profile</p>
+            </div>
+            <div>
+                <a th:href="@{/faculty/students}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Students
+                </a>
+            </div>
+        </div>
+
+        <!-- Feedback Alert -->
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i>
+            <span th:text="${error}">An error occurred.</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card card-theme p-4 border-danger">
+                    <form method="post" th:action="@{/faculty/students/new}" class="p-0 m-0 bg-transparent shadow-none border-0">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-white">Full Name *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" name="fullName" class="form-control" placeholder="e.g. Alice Johnson" th:value="${fullName}" required />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-white">Roll Number *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-hash"></i></span>
+                                    <input type="text" name="rollNo" class="form-control font-monospace" placeholder="e.g. S003" th:value="${rollNo}" required />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-white">Username *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-at"></i></span>
+                                    <input type="text" name="username" class="form-control font-monospace" placeholder="e.g. alicej" th:value="${username}" minlength="3" maxlength="50" required />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-white">Email Address *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" name="email" class="form-control" placeholder="e.g. alice@university.edu" th:value="${email}" required />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-white">Password *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-key"></i></span>
+                                    <input type="password" id="studentPassword" name="password" class="form-control font-monospace" placeholder="Minimum 6 characters" minlength="6" required />
+                                    <button type="button" class="btn password-toggle-btn" data-target="studentPassword" title="Toggle visibility">
+                                        <i class="bi bi-eye-fill"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-white">Department *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                    <input type="text" name="department" class="form-control" placeholder="e.g. Computer Science" th:value="${department}" required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 pt-4 mt-4 border-top" style="border-color: #2a2a2a !important;">
+                            <a th:href="@{/faculty/students}" class="btn btn-outline-secondary px-4">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-4 d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill me-2"></i> Register Student
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

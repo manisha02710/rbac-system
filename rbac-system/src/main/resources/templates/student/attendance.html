@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('My Attendance')}">
+    <title>Student Attendance</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="app-container">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="app-content" th:fragment="content">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Portal</a></li>
+                <li class="breadcrumb-item active" aria-current="page">My Attendance</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1 text-white">Attendance Record</h1>
+                <p class="text-muted mb-0">Track your class attendance percentage across courses</p>
+            </div>
+        </div>
+
+        <!-- Low Attendance Warning Message -->
+        <div th:if="${hasLowAttendance}" class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+            <div>
+                <strong class="text-white">Attendance Warning:</strong>
+                <span class="text-white ms-1">Your attendance is low, please attend more classes.</span>
+            </div>
+        </div>
+
+        <!-- Attendance Pie Chart (Student Role Only) -->
+        <div th:if="${sessionUser != null and sessionUser.student and !#lists.isEmpty(attendance)}" class="card card-theme p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-white mb-0">
+                    <i class="bi bi-pie-chart-fill text-danger me-2"></i>Attendance Distribution (Present vs Absent)
+                </h5>
+                <span class="badge badge-dark-custom">Academic Attendance</span>
+            </div>
+            <div class="row align-items-center g-4">
+                <div class="col-md-5 text-center">
+                    <div style="max-width: 250px; height: 250px; margin: 0 auto; position: relative;">
+                        <canvas id="studentAttendancePieChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="p-3 rounded mb-2 d-flex justify-content-between align-items-center" style="background-color: #121212; border: 1px solid #2a2a2a;">
+                        <span class="text-white"><i class="bi bi-check-circle-fill text-success me-2"></i>Total Classes Attended (Present)</span>
+                        <span class="badge bg-success fs-6" id="totalPresentCount">0</span>
+                    </div>
+                    <div class="p-3 rounded mb-2 d-flex justify-content-between align-items-center" style="background-color: #121212; border: 1px solid #2a2a2a;">
+                        <span class="text-white"><i class="bi bi-x-circle-fill text-danger me-2"></i>Total Classes Missed (Absent)</span>
+                        <span class="badge bg-danger fs-6" id="totalAbsentCount">0</span>
+                    </div>
+                    <div class="p-3 rounded d-flex justify-content-between align-items-center" style="background-color: #121212; border: 1px solid #2a2a2a;">
+                        <span class="text-muted"><i class="bi bi-calendar3 me-2"></i>Total Scheduled Sessions</span>
+                        <span class="badge badge-dark-custom fs-6" id="totalClassesCount">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-theme p-0 overflow-hidden">
+            <div class="p-3 border-bottom d-flex align-items-center justify-content-between" style="background-color: #161616; border-color: #2a2a2a !important;">
+                <h6 class="fw-bold mb-0 text-white"><i class="bi bi-calendar-check-fill text-danger me-2"></i>Class Participation Summary</h6>
+                <span class="badge badge-dark-custom">Academic Term</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-theme mb-0">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th style="width: 110px;">Present</th>
+                            <th style="width: 110px;">Total</th>
+                            <th style="width: 130px;">Percentage</th>
+                            <th style="width: 200px;">Attendance Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(attendance)}">
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-3 d-block mb-2 text-danger"></i>
+                                No records yet
+                            </td>
+                        </tr>
+                        <tr th:each="a : ${attendance}">
+                            <td class="fw-semibold text-white" th:text="${a.subject}">Subject</td>
+                            <td class="text-white" th:text="${a.attendedClasses}">28</td>
+                            <td class="text-white" th:text="${a.totalClasses}">30</td>
+                            <td>
+                                <span class="badge badge-dark-custom font-monospace fs-6" th:text="${a.percentage + '%'}">93%</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2" style="min-width: 140px;">
+                                    <div class="progress flex-grow-1" style="height: 8px; background-color: #2a2a2a;">
+                                        <div th:class="${a.lowAttendance} ? 'progress-bar bg-danger' : 'progress-bar bg-success'"
+                                             role="progressbar"
+                                             th:style="'width: ' + ${a.percentage} + '%;'"
+                                             th:aria-valuenow="${a.percentage}"
+                                             aria-valuemin="0"
+                                             aria-valuemax="100"></div>
+                                    </div>
+                                    <span th:if="${!a.lowAttendance}" class="badge bg-success text-white px-2 py-1" th:text="${a.status}">GOOD</span>
+                                    <span th:if="${a.lowAttendance}" class="badge bg-danger text-white px-2 py-1" th:text="${a.status}">LOW</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let totalAttended = 0;
+    let totalClasses = 0;
+
+    document.querySelectorAll('table tbody tr').forEach(tr => {
+        const tds = tr.querySelectorAll('td');
+        if (tds.length >= 3) {
+            const attended = parseInt(tds[1].innerText.trim(), 10);
+            const total = parseInt(tds[2].innerText.trim(), 10);
+            if (!isNaN(attended) && !isNaN(total)) {
+                totalAttended += attended;
+                totalClasses += total;
+            }
+        }
+    });
+
+    const totalAbsent = Math.max(0, totalClasses - totalAttended);
+
+    const presentEl = document.getElementById('totalPresentCount');
+    const absentEl = document.getElementById('totalAbsentCount');
+    const totalEl = document.getElementById('totalClassesCount');
+    if (presentEl) presentEl.innerText = totalAttended;
+    if (absentEl) absentEl.innerText = totalAbsent;
+    if (totalEl) totalEl.innerText = totalClasses;
+
+    const canvas = document.getElementById('studentAttendancePieChart');
+    if (canvas && totalClasses > 0 && typeof Chart !== 'undefined') {
+        new Chart(canvas, {
+            type: 'pie',
+            data: {
+                labels: ['Present', 'Absent'],
+                datasets: [{
+                    data: [totalAttended, totalAbsent],
+                    backgroundColor: ['#28a745', '#d90429'],
+                    borderColor: '#1a1a1a',
+                    borderWidth: 3,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#ffffff',
+                            font: { family: "'Poppins', sans-serif" }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const val = context.raw || 0;
+                                const pct = totalClasses > 0 ? ((val / totalClasses) * 100).toFixed(1) : 0;
+                                return ` ${context.label}: ${val} classes (${pct}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+</body>
+</html>

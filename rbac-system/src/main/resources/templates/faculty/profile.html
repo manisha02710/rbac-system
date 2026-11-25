@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Faculty Profile')}">
+    <title>Faculty Profile</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="app-container">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="app-content" th:fragment="content">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Portal</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Faculty Profile</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1 text-white">Faculty Profile</h1>
+                <p class="text-muted mb-0">Academic affiliation, department, and assigned courses</p>
+            </div>
+            <div>
+                <a th:href="@{/dashboard}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card card-theme p-4">
+                    <div class="d-flex align-items-center mb-4 pb-3 border-bottom border-dark">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center me-3 text-white" 
+                             style="width: 60px; height: 60px; background-color: #2b0a10; border: 2px solid #d90429; font-size: 1.5rem;">
+                            <i class="bi bi-person-workspace"></i>
+                        </div>
+                        <div>
+                            <h3 class="fw-bold text-white mb-0" th:text="${profile != null ? profile.facultyName : sessionUser.fullName}">Dr. Turing</h3>
+                            <span class="badge badge-dark-custom font-monospace" th:text="'@' + ${profile != null ? profile.username : sessionUser.username}">@faculty</span>
+                            <span class="badge" style="background-color: #d90429; color: white;">Faculty Member</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="text-muted small text-uppercase fw-semibold d-block">Email Address</label>
+                            <span class="text-white fs-6" th:text="${profile != null ? profile.email : 'N/A'}">faculty@example.com</span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small text-uppercase fw-semibold d-block">Primary Department</label>
+                            <span class="badge fs-6 mt-1" style="background-color: #2b0a10; color: #ff4d6d; border: 1px solid #d90429;"
+                                  th:text="${profile != null ? profile.departmentName : 'Not assigned'}">Computer Science</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h5 class="text-white fw-bold mb-3"><i class="bi bi-journal-bookmark-fill text-danger me-2"></i>Assigned Teaching Courses</h5>
+                        <div th:if="${profile == null or !profile.hasCourses()}" class="p-4 text-center rounded text-muted" style="background-color: #121212; border: 1px solid #2a2a2a;">
+                            <i class="bi bi-inbox fs-3 d-block mb-2 text-danger"></i>
+                            No courses currently assigned to your profile. Contact the administrator to assign teaching courses.
+                        </div>
+                        <div th:if="${profile != null and profile.hasCourses()}" class="row g-3">
+                            <div th:each="c : ${profile.courses}" class="col-md-6">
+                                <div class="p-3 rounded d-flex align-items-center justify-content-between" style="background-color: #121212; border: 1px solid #333;">
+                                    <div>
+                                        <div class="text-white fw-semibold" th:text="${c.courseName}">Data Structures</div>
+                                        <div class="small text-muted" th:text="'Dept: ' + ${c.departmentName}">Computer Science</div>
+                                    </div>
+                                    <span class="badge" style="background-color: #2b0a10; color: #ff4d6d; border: 1px solid #d90429; font-size: 0.85rem;" th:text="${c.courseCode}">CS101</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

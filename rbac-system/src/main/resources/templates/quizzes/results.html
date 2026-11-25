@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Quiz Results & Extension Requests')}">
+    <title>Quiz Results &amp; Extension Requests</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="app-container">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="app-content">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Portal</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/quizzes}">Quizzes</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Student Results</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <a th:href="@{/quizzes}" class="btn btn-sm btn-outline-secondary mb-2">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Quizzes
+                </a>
+                <h1 class="h3 fw-bold mb-1 text-white" th:text="${quiz.title}">Quiz Title</h1>
+                <p class="text-muted mb-0">
+                    <span class="badge bg-dark border border-secondary text-info me-2" th:text="${quiz.courseCode}">CS101</span>
+                    Total Attempts: <span class="text-warning fw-bold" th:text="${#lists.size(attempts)}">0</span> |
+                    Extension Requests: <span class="text-info fw-bold" th:text="${#lists.size(extensionRequests)}">0</span>
+                </p>
+            </div>
+            <div>
+                <a th:href="@{/quizzes/{id}/edit(id=${quiz.id})}" class="btn btn-outline-warning">
+                    <i class="bi bi-pencil-square me-1"></i> Edit Quiz
+                </a>
+            </div>
+        </div>
+
+        <!-- Flash messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+            <span th:text="${success}">Success message</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i>
+            <span th:text="${error}">Error message</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Section 1: Extension Requests -->
+        <div class="card card-theme p-0 overflow-hidden mb-5">
+            <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center" style="background-color: #161616;">
+                <h5 class="fw-bold text-white mb-0">
+                    <i class="bi bi-hourglass-top text-warning me-2"></i>Time Extension Requests
+                </h5>
+                <span class="badge bg-secondary" th:text="${#lists.size(extensionRequests) + ' Requests'}">0 Requests</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-theme mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th>Student</th>
+                            <th>Roll Number</th>
+                            <th>Department</th>
+                            <th>Reason</th>
+                            <th>Requested Extra</th>
+                            <th>Status</th>
+                            <th class="text-end" style="min-width: 180px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(extensionRequests)}">
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
+                                <span class="text-white-50">No time extension requests submitted for this quiz.</span>
+                            </td>
+                        </tr>
+                        <tr th:each="req, iter : ${extensionRequests}">
+                            <td class="text-muted" th:text="${iter.count}">1</td>
+                            <td>
+                                <div class="fw-bold text-white fs-6" th:text="${req.studentName}">Student Name</div>
+                                <span class="small text-muted" th:text="${#temporals.format(req.createdAt, 'dd MMM, HH:mm')}">Time</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark border border-secondary text-white font-monospace" th:text="${req.rollNo}">ROLL-001</span>
+                            </td>
+                            <td>
+                                <span class="small text-white-50" th:text="${req.department}">Computer Science</span>
+                            </td>
+                            <td style="max-width: 250px;">
+                                <div class="text-white-50 small text-truncate" th:title="${req.reason}" th:text="${req.reason}">Reason text</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info text-dark fw-bold" th:text="'+' + ${req.requestedMinutes} + ' mins'">+5 mins</span>
+                            </td>
+                            <td>
+                                <span th:if="${req.pending}" class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>PENDING</span>
+                                <span th:if="${req.approved}" class="badge bg-success"><i class="bi bi-check-circle me-1"></i>APPROVED</span>
+                                <span th:if="${req.rejected}" class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>REJECTED</span>
+                            </td>
+                            <td class="text-end">
+                                <div th:if="${req.pending}" class="d-flex justify-content-end gap-1">
+                                    <form th:action="@{/quizzes/extensions/{id}/approve(id=${req.id})}" method="post" class="d-inline">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${_csrf != null}" />
+                                        <button type="submit" class="btn btn-sm btn-success" title="Approve Extension">
+                                            <i class="bi bi-check-lg me-1"></i> Approve
+                                        </button>
+                                    </form>
+                                    <form th:action="@{/quizzes/extensions/{id}/reject(id=${req.id})}" method="post" class="d-inline">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${_csrf != null}" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject Extension">
+                                            <i class="bi bi-x-lg me-1"></i> Reject
+                                        </button>
+                                    </form>
+                                </div>
+                                <div th:unless="${req.pending}">
+                                    <span class="small text-muted" th:text="${req.status + ' by ' + (req.decidedByName != null ? req.decidedByName : 'Faculty')}">Decided</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section 2: Attempts Table -->
+        <div class="card card-theme p-0 overflow-hidden">
+            <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center" style="background-color: #161616;">
+                <h5 class="fw-bold text-white mb-0">
+                    <i class="bi bi-mortarboard text-danger me-2"></i>Student Quiz Submissions
+                </h5>
+                <span class="badge bg-secondary" th:text="${#lists.size(attempts) + ' Attempts'}">0 Attempts</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-theme mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th>Student</th>
+                            <th>Roll Number</th>
+                            <th>Department</th>
+                            <th>Score</th>
+                            <th>Extra Time</th>
+                            <th>Started At</th>
+                            <th>Submitted At</th>
+                            <th class="text-end">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(attempts)}">
+                            <td colspan="9" class="text-center py-5 text-muted">
+                                <i class="bi bi-people fs-1 d-block mb-3 text-secondary"></i>
+                                <h5 class="text-white fw-bold">No Attempts Recorded</h5>
+                                <p class="mb-0">No students have attempted this quiz yet.</p>
+                            </td>
+                        </tr>
+                        <tr th:each="att, iter : ${attempts}">
+                            <td class="text-muted" th:text="${iter.count}">1</td>
+                            <td>
+                                <div class="fw-bold text-white fs-6" th:text="${att.studentName}">Student Name</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark border border-secondary text-white font-monospace" th:text="${att.rollNo}">ROLL-001</span>
+                            </td>
+                            <td>
+                                <span class="small text-white-50" th:text="${att.department}">Computer Science</span>
+                            </td>
+                            <td>
+                                <span th:if="${att.submitted}" class="badge bg-success fs-6" th:text="${att.score + ' / ' + att.totalQuizMarks + ' pts'}">10 pts</span>
+                                <span th:unless="${att.submitted}" class="badge bg-secondary">Pending</span>
+                            </td>
+                            <td>
+                                <span th:if="${att.extraMinutes > 0}" class="badge bg-info text-dark" th:text="'+' + ${att.extraMinutes} + ' mins'">+5 mins</span>
+                                <span th:unless="${att.extraMinutes > 0}" class="small text-muted">-</span>
+                            </td>
+                            <td>
+                                <span class="small text-muted" th:text="${#temporals.format(att.startedAt, 'dd MMM yyyy, HH:mm:ss')}">Time</span>
+                            </td>
+                            <td>
+                                <span th:if="${att.submittedAt != null}" class="small text-white" th:text="${#temporals.format(att.submittedAt, 'dd MMM yyyy, HH:mm:ss')}">Time</span>
+                                <span th:unless="${att.submittedAt != null}" class="small text-muted">-</span>
+                            </td>
+                            <td class="text-end">
+                                <span th:if="${att.submitted}" class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Submitted</span>
+                                <span th:unless="${att.submitted}" class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>In Progress</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

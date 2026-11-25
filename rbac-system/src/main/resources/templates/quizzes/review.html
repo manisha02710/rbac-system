@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Quiz Review')}">
+    <title>Quiz Review</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="app-container">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="app-content">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Portal</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/quizzes}">Quizzes</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Review Attempt</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <a th:href="@{/quizzes}" class="btn btn-sm btn-outline-secondary mb-2">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Quizzes
+                </a>
+                <h1 class="h3 fw-bold mb-1 text-white" th:text="${quiz.title}">Quiz Title</h1>
+                <p class="text-muted mb-0">
+                    <span class="badge bg-dark border border-secondary text-info me-2" th:text="${quiz.courseCode}">CS101</span>
+                    Submitted on: <span th:text="${#temporals.format(attempt.submittedAt, 'dd MMM yyyy, HH:mm')}">Date</span>
+                </p>
+            </div>
+            <div>
+                <div class="card card-theme px-4 py-2 border-danger text-center">
+                    <div class="small text-muted text-uppercase fw-bold">Score Earned</div>
+                    <div class="fs-3 fw-bold text-danger">
+                        <span th:text="${attempt.score}">10</span> pts
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flash messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+            <span th:text="${success}">Success message</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Question Reviews -->
+        <div class="d-flex flex-column gap-3 mb-4">
+            <div th:each="r, iter : ${reviews}" class="card card-theme p-4"
+                 th:classappend="${r.correct} ? 'border-success' : 'border-danger'">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex align-items-start gap-2">
+                        <span class="badge me-1 fs-6" th:classappend="${r.correct} ? 'bg-success' : 'bg-danger'" th:text="'Q' + ${iter.count}">Q1</span>
+                        <div>
+                            <h5 class="text-white fw-bold mb-1" th:text="${r.question.questionText}">Question text</h5>
+                            <span class="small text-muted" th:text="'Marks: ' + ${r.marksEarned} + ' / ' + ${r.question.marks}">1 / 1</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span th:if="${r.correct}" class="badge bg-success fs-6"><i class="bi bi-check-lg me-1"></i>Correct</span>
+                        <span th:unless="${r.correct}" class="badge bg-danger fs-6"><i class="bi bi-x-lg me-1"></i>Incorrect</span>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-2">
+                    <!-- Option A -->
+                    <div class="col-md-6">
+                        <div class="p-2 rounded border"
+                             th:classappend="${r.question.correctOption == 'A'} ? 'border-success bg-dark' : (${r.selectedOption == 'A' and !r.correct} ? 'border-danger bg-dark' : 'border-secondary')" style="background: #121212;">
+                            <span class="badge me-2" th:classappend="${r.question.correctOption == 'A'} ? 'bg-success' : (${r.selectedOption == 'A'} ? 'bg-danger' : 'bg-secondary')">A</span>
+                            <span th:text="${r.question.optionA}" th:classappend="${r.question.correctOption == 'A'} ? 'text-success fw-bold' : (${r.selectedOption == 'A'} ? 'text-danger fw-bold' : 'text-white-50')">Option A</span>
+                            <span th:if="${r.selectedOption == 'A'}" class="badge bg-primary float-end">Your Answer</span>
+                        </div>
+                    </div>
+
+                    <!-- Option B -->
+                    <div class="col-md-6">
+                        <div class="p-2 rounded border"
+                             th:classappend="${r.question.correctOption == 'B'} ? 'border-success bg-dark' : (${r.selectedOption == 'B' and !r.correct} ? 'border-danger bg-dark' : 'border-secondary')" style="background: #121212;">
+                            <span class="badge me-2" th:classappend="${r.question.correctOption == 'B'} ? 'bg-success' : (${r.selectedOption == 'B'} ? 'bg-danger' : 'bg-secondary')">B</span>
+                            <span th:text="${r.question.optionB}" th:classappend="${r.question.correctOption == 'B'} ? 'text-success fw-bold' : (${r.selectedOption == 'B'} ? 'text-danger fw-bold' : 'text-white-50')">Option B</span>
+                            <span th:if="${r.selectedOption == 'B'}" class="badge bg-primary float-end">Your Answer</span>
+                        </div>
+                    </div>
+
+                    <!-- Option C -->
+                    <div class="col-md-6">
+                        <div class="p-2 rounded border"
+                             th:classappend="${r.question.correctOption == 'C'} ? 'border-success bg-dark' : (${r.selectedOption == 'C' and !r.correct} ? 'border-danger bg-dark' : 'border-secondary')" style="background: #121212;">
+                            <span class="badge me-2" th:classappend="${r.question.correctOption == 'C'} ? 'bg-success' : (${r.selectedOption == 'C'} ? 'bg-danger' : 'bg-secondary')">C</span>
+                            <span th:text="${r.question.optionC}" th:classappend="${r.question.correctOption == 'C'} ? 'text-success fw-bold' : (${r.selectedOption == 'C'} ? 'text-danger fw-bold' : 'text-white-50')">Option C</span>
+                            <span th:if="${r.selectedOption == 'C'}" class="badge bg-primary float-end">Your Answer</span>
+                        </div>
+                    </div>
+
+                    <!-- Option D -->
+                    <div class="col-md-6">
+                        <div class="p-2 rounded border"
+                             th:classappend="${r.question.correctOption == 'D'} ? 'border-success bg-dark' : (${r.selectedOption == 'D' and !r.correct} ? 'border-danger bg-dark' : 'border-secondary')" style="background: #121212;">
+                            <span class="badge me-2" th:classappend="${r.question.correctOption == 'D'} ? 'bg-success' : (${r.selectedOption == 'D'} ? 'bg-danger' : 'bg-secondary')">D</span>
+                            <span th:text="${r.question.optionD}" th:classappend="${r.question.correctOption == 'D'} ? 'text-success fw-bold' : (${r.selectedOption == 'D'} ? 'text-danger fw-bold' : 'text-white-50')">Option D</span>
+                            <span th:if="${r.selectedOption == 'D'}" class="badge bg-primary float-end">Your Answer</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="small text-muted">
+                    <span class="text-white-50">Selected: <strong th:text="${r.selectedOption != null and !r.selectedOption.isBlank() ? r.selectedOption : 'None'}">A</strong></span> |
+                    <span class="text-success">Correct Answer: <strong th:text="${r.question.correctOption}">A</strong></span>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Course Study Materials')}">
+    <title>Course Study Materials</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="app-container">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="app-content">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Portal</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Study Materials</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1 text-white">Course Study Materials</h1>
+                <p class="text-muted mb-0">Browse, search, and download academic lecture slides, notes, and resources</p>
+            </div>
+            <div th:if="${canManage}">
+                <button type="button" class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#uploadMaterialModal">
+                    <i class="bi bi-cloud-arrow-up-fill me-2"></i> Upload Material
+                </button>
+            </div>
+        </div>
+
+        <!-- Flash messages -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+            <span th:text="${success}">Success message</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i>
+            <span th:text="${error}">Error message</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Filter & Search Card -->
+        <div class="card card-theme p-3 mb-4">
+            <form th:action="@{/materials}" method="get" class="row g-2 align-items-center">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" name="keyword" th:value="${searchKeyword}" class="form-control" placeholder="Search by title or description..." />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select name="courseId" class="form-select">
+                        <option value="">-- Filter by Course --</option>
+                        <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.courseCode + ' - ' + c.courseName}" th:selected="${c.id == selectedCourseId}"></option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1"><i class="bi bi-funnel me-1"></i> Filter</button>
+                    <a th:href="@{/materials}" class="btn btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i></a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Materials Table -->
+        <div class="card card-theme p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover table-theme mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th>Title &amp; Details</th>
+                            <th>Course</th>
+                            <th>File Name</th>
+                            <th>Uploaded By</th>
+                            <th>Date</th>
+                            <th class="text-end" style="min-width: 140px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(materials)}">
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-folder-x fs-1 d-block mb-3 text-danger"></i>
+                                <h5 class="text-white fw-bold">No Study Materials Found</h5>
+                                <p class="mb-0">No materials match your search or filter criteria.</p>
+                            </td>
+                        </tr>
+                        <tr th:each="m, iter : ${materials}">
+                            <td class="text-muted" th:text="${iter.count}">1</td>
+                            <td>
+                                <div class="fw-bold text-white" th:text="${m.title}">Data Structures Notes</div>
+                                <div class="small text-muted text-truncate" style="max-width: 320px;" th:text="${m.description != null ? m.description : 'No description'}">Notes description</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark border border-secondary text-info" th:text="${m.courseCode}">CS101</span>
+                                <span class="small text-white-50 ms-1" th:text="${m.courseName}">Course Name</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary text-white font-monospace"><i class="bi bi-paperclip me-1"></i><span th:text="${m.fileName}">document.pdf</span></span>
+                            </td>
+                            <td>
+                                <span class="small text-white" th:text="${m.uploaderName}">Dr. Smith</span>
+                            </td>
+                            <td>
+                                <span class="small text-muted" th:text="${#temporals.format(m.uploadedAt, 'dd MMM yyyy')}">29 Oct 2026</span>
+                            </td>
+                            <td class="text-end">
+                                <a th:href="@{/materials/{id}/download(id=${m.id})}" class="btn btn-sm btn-outline-info me-1" title="Download Material">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                                <button th:if="${canManage and (sessionUser.admin or sessionUser.userId == m.uploadedBy)}"
+                                        type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" th:data-bs-target="'#deleteModal' + ${m.id}" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Upload Material Modal (Placed outside cards before body) -->
+<div th:if="${canManage}" class="modal fade" id="uploadMaterialModal" tabindex="-1" aria-labelledby="uploadMaterialModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-theme border-danger">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white fw-bold" id="uploadMaterialModalLabel"><i class="bi bi-cloud-arrow-up text-danger me-2"></i>Upload Study Material</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form th:action="@{/materials/upload}" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-white-50">Course <span class="text-danger">*</span></label>
+                        <select name="courseId" class="form-select" required>
+                            <option value="">-- Select Course --</option>
+                            <option th:each="c : ${courses}" th:value="${c.id}" th:text="${c.courseCode + ' - ' + c.courseName}"></option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50">Title <span class="text-danger">*</span></label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g. Week 1 Lecture Slides" required maxlength="255" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50">Description</label>
+                        <textarea name="description" class="form-control" rows="3" placeholder="Brief summary or reading instructions..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50">File <span class="text-danger">*</span> (Max 10 MB)</label>
+                        <input type="file" name="file" class="form-control" required accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.jpg,.jpeg,.png,.txt" />
+                        <div class="form-text text-muted">Allowed types: PDF, DOC, DOCX, PPT, PPTX, ZIP, PNG, JPG, TXT</div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-upload me-1"></i> Upload File</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modals for each material (Placed outside cards before body) -->
+<th:block th:if="${canManage}" th:each="m : ${materials}">
+    <div th:if="${sessionUser.admin or sessionUser.userId == m.uploadedBy}" class="modal fade" th:id="'deleteModal' + ${m.id}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content card-theme border-danger">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-white fw-bold"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirm Delete</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-white">
+                    Are you sure you want to delete <strong th:text="${m.title}">material</strong>? The file will be permanently removed.
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <form th:action="@{/materials/{id}/delete(id=${m.id})}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

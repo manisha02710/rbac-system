@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Complaints Management')}">
+    <title>Complaints Management</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="app-container">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="app-content" th:fragment="content">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Portal</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Complaints</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1 text-white">Student Complaints &amp; Feedback</h1>
+                <p class="text-muted mb-0">Review student grievances, assign statuses, and post official administrative responses</p>
+            </div>
+            <!-- Status Filter Pills -->
+            <div class="d-flex gap-1 flex-wrap">
+                <a th:href="@{/admin/complaints(status='ALL')}" 
+                   class="btn btn-sm" 
+                   th:classappend="${currentStatus == null or currentStatus == 'ALL'} ? 'btn-danger' : 'btn-outline-secondary'">
+                    All
+                </a>
+                <a th:href="@{/admin/complaints(status='OPEN')}" 
+                   class="btn btn-sm" 
+                   th:classappend="${currentStatus == 'OPEN'} ? 'btn-warning text-dark' : 'btn-outline-secondary'">
+                    Open
+                </a>
+                <a th:href="@{/admin/complaints(status='IN_PROGRESS')}" 
+                   class="btn btn-sm" 
+                   th:classappend="${currentStatus == 'IN_PROGRESS'} ? 'btn-info text-dark' : 'btn-outline-secondary'">
+                    In Progress
+                </a>
+                <a th:href="@{/admin/complaints(status='RESOLVED')}" 
+                   class="btn btn-sm" 
+                   th:classappend="${currentStatus == 'RESOLVED'} ? 'btn-success' : 'btn-outline-secondary'">
+                    Resolved
+                </a>
+            </div>
+        </div>
+
+        <!-- Feedback Alerts -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+            <span th:text="${success}">Operation completed successfully.</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i>
+            <span th:text="${error}">An error occurred.</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="card card-theme p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover table-theme mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 70px;">ID</th>
+                            <th>Student</th>
+                            <th>Category</th>
+                            <th>Subject &amp; Details</th>
+                            <th style="width: 130px;">Status</th>
+                            <th>Admin Response</th>
+                            <th style="width: 140px;">Submitted On</th>
+                            <th style="width: 110px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(complaints)}">
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2 text-danger"></i>
+                                <span class="fs-6 d-block mb-1">No complaints found</span>
+                                <span class="small text-muted">No student feedback entries match the selected status filter.</span>
+                            </td>
+                        </tr>
+                        <tr th:each="c : ${complaints}">
+                            <td class="text-muted fw-bold font-monospace" th:text="'#' + ${c.id}">#1</td>
+                            <td>
+                                <div class="text-white fw-bold" th:text="${c.studentName}">Student Name</div>
+                                <span class="badge badge-dark-custom font-monospace" th:text="${c.rollNo}">S001</span>
+                            </td>
+                            <td>
+                                <span class="badge" style="background-color: #2b0a10; color: #ff4d6d; border: 1px solid #d90429;" th:text="${c.category}">ACADEMIC</span>
+                            </td>
+                            <td>
+                                <div class="text-white fw-semibold" th:text="${c.subject}">Subject</div>
+                                <div class="small text-muted text-truncate" style="max-width: 280px;" th:text="${c.description}">Description text</div>
+                            </td>
+                            <td>
+                                <span th:if="${c.status.name() == 'OPEN'}" class="badge bg-warning text-dark font-monospace">OPEN</span>
+                                <span th:if="${c.status.name() == 'IN_PROGRESS'}" class="badge bg-info text-dark font-monospace">IN PROGRESS</span>
+                                <span th:if="${c.status.name() == 'RESOLVED'}" class="badge bg-success font-monospace">RESOLVED</span>
+                            </td>
+                            <td>
+                                <div th:if="${c.adminResponse != null and !c.adminResponse.isBlank()}" class="p-2 rounded small" style="background-color: #121212; border: 1px solid #333; max-width: 250px;">
+                                    <span class="text-white text-truncate d-block" th:text="${c.adminResponse}">Response</span>
+                                </div>
+                                <span th:unless="${c.adminResponse != null and !c.adminResponse.isBlank()}" class="text-muted small fst-italic">Pending response</span>
+                            </td>
+                            <td class="text-muted small" th:text="${#temporals.format(c.createdAt, 'dd MMM yyyy HH:mm')}">Date</td>
+                            <td>
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-danger d-inline-flex align-items-center"
+                                        data-bs-toggle="modal" 
+                                        th:data-bs-target="'#respondModal-' + ${c.id}">
+                                    <i class="bi bi-reply-fill me-1"></i> Respond
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Response Modals (Placed outside cards and containers before closing body to eliminate stacking bugs) -->
+<th:block th:each="c : ${complaints}">
+    <div class="modal fade" th:id="'respondModal-' + ${c.id}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content card-theme p-3 border-danger">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-white">
+                        <i class="bi bi-chat-dots-fill text-danger me-2"></i> Respond to Complaint #<span th:text="${c.id}">1</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" th:action="@{/admin/complaints/{id}/respond(id=${c.id})}" class="p-0 m-0 bg-transparent border-0 shadow-none">
+                    <div class="modal-body py-3">
+                        <div class="p-3 rounded mb-3" style="background-color: #121212; border: 1px solid #2a2a2a;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-white fw-bold fs-6" th:text="${c.subject}">Subject</span>
+                                <span class="badge" style="background-color: #2b0a10; color: #ff4d6d;" th:text="${c.category}">ACADEMIC</span>
+                            </div>
+                            <div class="small text-muted mb-2 font-monospace" th:text="'Student: ' + ${c.studentName} + ' (' + ${c.rollNo} + ')'">Student Info</div>
+                            <div class="text-white small p-2 rounded" style="background-color: #0d0d0d; border: 1px solid #333;" th:text="${c.description}">Full description text</div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-white">Update Status *</label>
+                                <select name="status" class="form-select" required>
+                                    <option value="OPEN" th:selected="${c.status.name() == 'OPEN'}">OPEN</option>
+                                    <option value="IN_PROGRESS" th:selected="${c.status.name() == 'IN_PROGRESS'}">IN_PROGRESS</option>
+                                    <option value="RESOLVED" th:selected="${c.status.name() == 'RESOLVED'}">RESOLVED</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold text-white">Administrative Response *</label>
+                                <textarea name="adminResponse" class="form-control" rows="4" placeholder="Enter official response or resolution notes for the student..." required th:text="${c.adminResponse}"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Response</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

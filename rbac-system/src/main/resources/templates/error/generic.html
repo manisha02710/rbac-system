@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('System Error')}">
+    <title>System Error</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container d-flex flex-column align-items-center justify-content-center py-5 error-page-container">
+    <div class="card card-theme p-5 text-center shadow-lg border-danger" style="max-width: 520px; width: 100%;">
+        <div class="error-code-badge" style="font-size: 3.5rem;">ERROR</div>
+        <div class="mb-3">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle"
+                 style="width: 72px; height: 72px; background: rgba(217, 4, 41, 0.12); border: 2px solid var(--primary-red); box-shadow: 0 0 25px rgba(217, 4, 41, 0.4);">
+                <i class="bi bi-exclamation-triangle-fill text-danger fs-1"></i>
+            </div>
+        </div>
+        <h2 class="h3 fw-bold text-white mb-2">Something Went Wrong</h2>
+        <p class="text-muted mb-4 small" style="line-height: 1.6;" th:text="${errorMessage != null ? errorMessage : 'An unexpected exception occurred while processing this operation. The incident has been recorded.'}">
+            An unexpected exception occurred while processing this operation. The incident has been recorded.
+        </p>
+        <div class="d-flex justify-content-center gap-2">
+            <a th:href="@{/dashboard}" class="btn btn-primary d-flex align-items-center px-4">
+                <i class="bi bi-speedometer2 me-2"></i> Go to Dashboard
+            </a>
+            <a th:href="@{/login}" class="btn btn-outline-secondary d-flex align-items-center px-3">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Return to Login
+            </a>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!-- Sidebar Fragment -->
+<aside class="app-sidebar" th:fragment="sidebar">
+    <div class="sidebar-brand-box">
+        <h2 class="sidebar-brand-title"><i class="bi bi-mortarboard-fill text-danger me-2"></i>Campus Portal</h2>
+        <p class="sidebar-brand-subtitle">Role-Based Access Control</p>
+    </div>
+    <ul class="sidebar-nav">
+        <!-- 1. Dashboard (All Users) -->
+        <li class="sidebar-nav-item">
+            <a th:href="@{/dashboard}" class="sidebar-nav-link" th:classappend="${currentPath != null and (currentPath == '/' or #strings.contains(currentPath, '/dashboard')) ? 'active' : ''}">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+
+        <!-- 2. Users (Admin Only) -->
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and sessionUser.admin and sessionUser.permissions.contains('USER_READ')}">
+            <a th:href="@{/admin/users}" class="sidebar-nav-link" th:classappend="${currentPath != null and #strings.contains(currentPath, '/admin/users') ? 'active' : ''}">
+                <i class="bi bi-people-fill"></i>
+                <span>Users</span>
+            </a>
+        </li>
+
+        <!-- 3. Roles (Admin Only) -->
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and sessionUser.admin and (sessionUser.permissions.contains('ROLE_CREATE') or sessionUser.permissions.contains('ROLE_ASSIGN') or sessionUser.permissions.contains('ROLE_READ'))}">
+            <a th:href="@{/admin/roles}" class="sidebar-nav-link" th:classappend="${currentPath != null and #strings.contains(currentPath, '/admin/roles') ? 'active' : ''}">
+                <i class="bi bi-shield-shaded"></i>
+                <span>Roles</span>
+            </a>
+        </li>
+
+        <!-- 4. Faculty (Admin Only) -->
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and sessionUser.admin and sessionUser.permissions.contains('USER_READ')}">
+            <a th:href="@{/admin/faculty}" class="sidebar-nav-link" th:classappend="${currentPath != null and #strings.contains(currentPath, '/admin/faculty') ? 'active' : ''}">
+                <i class="bi bi-person-workspace"></i>
+                <span>Faculty</span>
+            </a>
+        </li>
+
+        <!-- 5. Students Expandable Group (Admin & Faculty Only) -->
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and !sessionUser.student and (sessionUser.permissions.contains('STUDENT_READ') or sessionUser.permissions.contains('MARKS_READ') or sessionUser.permissions.contains('ATTENDANCE_VIEW'))}">
+            <a class="sidebar-nav-link d-flex align-items-center justify-content-between" 
+               data-bs-toggle="collapse" 
+               href="#studentsSubmenu" 
+               role="button" 
+               th:aria-expanded="${currentPath != null and #strings.contains(currentPath, '/faculty/') ? 'true' : 'false'}" 
+               aria-controls="studentsSubmenu"
+               th:classappend="${currentPath != null and #strings.contains(currentPath, '/faculty/') ? 'active' : ''}">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-mortarboard"></i>
+                    <span>Students</span>
+                </div>
+                <i class="bi bi-chevron-down small transition-icon" style="margin-right: 0; width: auto;"></i>
+            </a>
+            <div class="collapse" id="studentsSubmenu" th:classappend="${currentPath != null and #strings.contains(currentPath, '/faculty/') ? 'show' : ''}">
+                <ul class="sidebar-subnav list-unstyled mb-0">
+                    <li class="sidebar-nav-item" th:if="${sessionUser.permissions.contains('STUDENT_READ')}">
+                        <a th:href="@{/faculty/students}" class="sidebar-nav-link" th:classappend="${currentPath != null and (currentPath == '/faculty/students' or #strings.contains(currentPath, '/faculty/students/')) ? 'active' : ''}">
+                            <i class="bi bi-people"></i>
+                            <span>All Students</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item" th:if="${sessionUser.permissions.contains('MARKS_READ')}">
+                        <a th:href="@{/faculty/marks}" class="sidebar-nav-link" th:classappend="${currentPath != null and (#strings.contains(currentPath, '/faculty/marks') or #strings.contains(currentPath, '/faculty/student/marks')) ? 'active' : ''}">
+                            <i class="bi bi-award"></i>
+                            <span>Student Marks</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-nav-item" th:if="${sessionUser.permissions.contains('ATTENDANCE_VIEW')}">
+                        <a th:href="@{/faculty/attendance}" class="sidebar-nav-link" th:classappend="${currentPath != null and (#strings.contains(currentPath, '/faculty/attendance') or #strings.contains(currentPath, '/faculty/student/attendance')) ? 'active' : ''}">
+                            <i class="bi bi-calendar-check"></i>
+                            <span>Student Attendance</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+
+        <!-- Student Only Academic Links -->
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and sessionUser.student and sessionUser.permissions.contains('OWN_PROFILE_VIEW')}">
+            <a th:href="@{/student/profile}" class="sidebar-nav-link" th:classappend="${currentPath != null and #strings.contains(currentPath, '/student/profile') ? 'active' : ''}">
+                <i class="bi bi-person-circle"></i>
+                <span>My Profile</span>
+            </a>
+        </li>
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and sessionUser.student and sessionUser.permissions.contains('OWN_MARKS_VIEW')}">
+            <a th:href="@{/student/marks}" class="sidebar-nav-link" th:classappend="${currentPath != null and #strings.contains(currentPath, '/student/marks') ? 'active' : ''}">
+                <i class="bi bi-award-fill"></i>
+                <span>My Marks</span>
+            </a>
+        </li>
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and sessionUser.student and sessionUser.permissions.contains('OWN_ATTENDANCE_VIEW')}">
+            <a th:href="@{/student/attendance}" class="sidebar-nav-link" th:classappend="${currentPath != null and #strings.contains(currentPath, '/student/attendance') ? 'active' : ''}">
+                <i class="bi bi-clock-history"></i>
+                <span>My Attendance</span>
+            </a>
+        </li>
+
+        <!-- Materials (Admin, Faculty, Student) -->
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and sessionUser.permissions.contains('MATERIAL_VIEW')}">
+            <a th:href="@{/materials}" class="sidebar-nav-link" th:classappend="${currentPath != null and #strings.contains(currentPath, '/materials') ? 'active' : ''}">
+                <i class="bi bi-folder2-open"></i>
+                <span>Materials</span>
+            </a>
+        </li>
+
+        <!-- Assignments (Admin, Faculty, Student) -->
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and sessionUser.permissions.contains('ASSIGNMENT_VIEW')}">
+            <a th:href="@{/assignments}" class="sidebar-nav-link" th:classappend="${currentPath != null and #strings.contains(currentPath, '/assignments') ? 'active' : ''}">
+                <i class="bi bi-journal-text"></i>
+                <span>Assignments</span>
+            </a>
+        </li>
+
+        <!-- Quizzes (Faculty & Student Only - Hidden for Admin) -->
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and !sessionUser.admin and (sessionUser.permissions.contains('QUIZ_MANAGE') or sessionUser.permissions.contains('QUIZ_ATTEMPT'))}">
+            <a th:href="@{/quizzes}" class="sidebar-nav-link d-flex align-items-center justify-content-between" th:classappend="${currentPath != null and #strings.contains(currentPath, '/quizzes') ? 'active' : ''}">
+                <div>
+                    <i class="bi bi-patch-question"></i>
+                    <span>Quizzes</span>
+                </div>
+                <span th:if="${sessionUser.student and unattemptedQuizCount != null and unattemptedQuizCount > 0}" 
+                      class="badge rounded-pill bg-danger ms-auto" 
+                      th:text="${unattemptedQuizCount}">1</span>
+            </a>
+        </li>
+
+        <!-- Feedback / Complaints (Student Only) -->
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and sessionUser.student and (sessionUser.permissions.contains('COMPLAINT_VIEW_OWN') or sessionUser.permissions.contains('FEEDBACK_SUBMIT'))}">
+            <a th:href="@{/student/complaints}" class="sidebar-nav-link" th:classappend="${currentPath != null and (#strings.contains(currentPath, '/student/complaints') or #strings.contains(currentPath, '/feedback/rate')) ? 'active' : ''}">
+                <i class="bi bi-chat-left-text-fill"></i>
+                <span>Feedback / Complaints</span>
+            </a>
+        </li>
+
+        <!-- Complaints (Admin Only) -->
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and sessionUser.admin and sessionUser.permissions.contains('COMPLAINT_MANAGE')}">
+            <a th:href="@{/admin/complaints}" class="sidebar-nav-link" th:classappend="${currentPath != null and #strings.contains(currentPath, '/admin/complaints') ? 'active' : ''}">
+                <i class="bi bi-chat-left-dots-fill"></i>
+                <span>Complaints</span>
+            </a>
+        </li>
+
+        <!-- Faculty Feedback (Admin: /admin/faculty-feedback) -->
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and sessionUser.admin and sessionUser.permissions.contains('FEEDBACK_VIEW_ALL')}">
+            <a th:href="@{/admin/faculty-feedback}" class="sidebar-nav-link" th:classappend="${currentPath != null and #strings.contains(currentPath, '/admin/faculty-feedback') ? 'active' : ''}">
+                <i class="bi bi-star-half"></i>
+                <span>Faculty Feedback</span>
+            </a>
+        </li>
+
+        <!-- Faculty Feedback (Faculty: /faculty/feedback) -->
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and !sessionUser.admin and !sessionUser.student and sessionUser.permissions.contains('FEEDBACK_VIEW_OWN')}">
+            <a th:href="@{/faculty/feedback}" class="sidebar-nav-link" th:classappend="${currentPath != null and #strings.contains(currentPath, '/faculty/feedback') ? 'active' : ''}">
+                <i class="bi bi-star-half"></i>
+                <span>Faculty Feedback</span>
+            </a>
+        </li>
+
+        <!-- Audit Logs (Admin Only) -->
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and sessionUser.admin and sessionUser.permissions.contains('AUDIT_VIEW')}">
+            <a th:href="@{/audit}" class="sidebar-nav-link" th:classappend="${currentPath != null and #strings.contains(currentPath, '/audit') ? 'active' : ''}">
+                <i class="bi bi-file-earmark-text"></i>
+                <span>Audit Logs</span>
+            </a>
+        </li>
+
+        <!-- Announcements (Admin: /admin/announcements) -->
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and sessionUser.admin and sessionUser.permissions.contains('ANNOUNCEMENT_MANAGE')}">
+            <a th:href="@{/admin/announcements}" class="sidebar-nav-link" th:classappend="${currentPath != null and #strings.contains(currentPath, '/admin/announcements') ? 'active' : ''}">
+                <i class="bi bi-megaphone-fill"></i>
+                <span>Announcements</span>
+            </a>
+        </li>
+
+        <!-- Announcements (Faculty and Students: /announcements) -->
+        <li class="sidebar-nav-item" th:if="${sessionUser != null and !sessionUser.admin and sessionUser.permissions.contains('ANNOUNCEMENT_VIEW')}">
+            <a th:href="@{/announcements}" class="sidebar-nav-link" th:classappend="${currentPath != null and #strings.contains(currentPath, '/announcements') ? 'active' : ''}">
+                <i class="bi bi-megaphone"></i>
+                <span>Announcements</span>
+            </a>
+        </li>
+    </ul>
+</aside>

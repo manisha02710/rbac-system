@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Audit Logs')}">
+    <title>Audit Logs</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="app-container">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="app-content" th:fragment="content">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Portal</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Audit Logs</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1 text-white">Security Audit Logs</h1>
+                <p class="text-muted mb-0">System events, authentication attempts and access history</p>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+            <span th:text="${success}">Success</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i>
+            <span th:text="${error}">Error</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Filter Card -->
+        <div class="card card-theme p-3 mb-4">
+            <form method="get" th:action="@{/audit}" class="p-0 m-0 bg-transparent shadow-none border-0 d-flex align-items-center flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <label for="status" class="fw-semibold text-white mb-0 small"><i class="bi bi-funnel text-danger me-1"></i>Filter by Status:</label>
+                    <select name="status" id="status" class="form-select form-select-sm" style="width: 140px;">
+                        <option value="">All Events</option>
+                        <option value="SUCCESS" th:selected="${selectedStatus == 'SUCCESS'}">SUCCESS</option>
+                        <option value="DENIED" th:selected="${selectedStatus == 'DENIED'}">DENIED</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary">Apply Filter</button>
+                <a th:href="@{/audit}" class="btn btn-sm btn-outline-secondary">Reset</a>
+            </form>
+        </div>
+
+        <!-- Audit Table -->
+        <div class="card card-theme p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover table-theme mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 70px;">ID</th>
+                            <th style="width: 100px;">User</th>
+                            <th style="width: 180px;">Action</th>
+                            <th style="width: 120px;">Status</th>
+                            <th style="width: 200px;">Timestamp</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(logs)}">
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2 text-danger"></i>
+                                <span class="fs-6 d-block mb-1">No audit events found</span>
+                                <span class="small text-muted">No security events match the selected criteria.</span>
+                            </td>
+                        </tr>
+                        <tr th:each="log : ${logs}">
+                            <td class="fw-bold text-muted font-monospace" th:text="'#' + ${log.id}">#1</td>
+                            <td>
+                                <span class="badge badge-dark-custom font-monospace" th:text="${log.userId != null ? 'UID: ' + log.userId : 'SYSTEM'}">UID: 1</span>
+                            </td>
+                            <td>
+                                <span class="badge" style="background-color: #2b0a10; color: #ff4d6d; border: 1px solid #d90429;" th:text="${log.action}">USER_LOGIN</span>
+                            </td>
+                            <td>
+                                <span th:if="${log.status != null and log.status.name() == 'SUCCESS'}" class="badge badge-active">
+                                    <i class="bi bi-check-circle me-1"></i>SUCCESS
+                                </span>
+                                <span th:if="${log.status != null and log.status.name() == 'DENIED'}" class="badge bg-danger text-white">
+                                    <i class="bi bi-slash-circle me-1"></i>DENIED
+                                </span>
+                            </td>
+                            <td class="text-muted small" th:text="${log.createdAt}">2026-10-20 12:00:00</td>
+                            <td class="text-muted small" th:text="${log.details}">Event details</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

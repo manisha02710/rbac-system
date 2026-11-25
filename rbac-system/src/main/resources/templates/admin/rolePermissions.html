@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Role Permissions')}">
+    <title>Role Permissions</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="app-container">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="app-content" th:fragment="content">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Portal</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/admin/roles}">Roles</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Role Permissions</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1 text-white">
+                    Permissions for: <span class="text-danger" th:text="${role.roleName}">ROLE</span>
+                </h1>
+                <p class="text-muted mb-0">Check permissions to grant access to this role profile</p>
+            </div>
+            <div>
+                <a th:href="@{/admin/roles}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Roles
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+            <span th:text="${success}">Permissions updated.</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i>
+            <span th:text="${error}">An error occurred.</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="card card-theme p-4">
+            <form method="post" th:action="@{/admin/roles/{roleId}/permissions(roleId=${role.id})}" class="p-0 m-0 bg-transparent shadow-none border-0">
+                <div class="table-responsive mb-4">
+                    <table class="table table-hover table-theme mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 70px;" class="text-center">Assign</th>
+                                <th style="width: 250px;">Permission Name</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="perm : ${allPermissions}">
+                                <td class="text-center">
+                                    <input type="checkbox" name="permissionIds" class="form-check-input" 
+                                           th:value="${perm.id}" 
+                                           th:checked="${assignedIds.contains(perm.id)}" />
+                                </td>
+                                <td>
+                                    <span class="badge badge-dark-custom font-monospace" th:text="${perm.permissionName}">PERMISSION_NAME</span>
+                                </td>
+                                <td class="text-muted" th:text="${perm.description}">Permission description</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pt-3 border-top d-flex gap-2" style="border-color: #2a2a2a !important;">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check2-circle me-1"></i> Update Permissions
+                    </button>
+                    <a th:href="@{/admin/roles}" class="btn btn-outline-secondary px-3">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

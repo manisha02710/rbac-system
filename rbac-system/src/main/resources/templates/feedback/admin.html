@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Faculty Feedback Overview')}">
+    <title>Faculty Feedback Overview</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="app-container">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="app-content">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Portal</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Faculty Feedback</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1 text-white">Faculty Feedback &amp; Evaluations</h1>
+                <p class="text-muted mb-0">Institutional teaching evaluation aggregates and student feedback metrics</p>
+            </div>
+            <div>
+                <span class="badge bg-dark border border-secondary text-white-50 p-2">
+                    <i class="bi bi-shield-check text-success me-1"></i> Student Anonymity Preserved
+                </span>
+            </div>
+        </div>
+
+        <!-- Feedback Overview Table -->
+        <div class="card card-theme p-0 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover table-theme mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th>Faculty Member</th>
+                            <th>Department</th>
+                            <th>Course</th>
+                            <th>Average Rating</th>
+                            <th>Total Reviews</th>
+                            <th class="text-end" style="min-width: 140px;">Anonymous Comments</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(aggregates)}">
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-star fs-1 d-block mb-3 text-secondary"></i>
+                                <h5 class="text-white fw-bold">No Feedback Data Available</h5>
+                                <p class="mb-0">Students have not yet submitted feedback for any faculty member.</p>
+                            </td>
+                        </tr>
+                        <tr th:each="agg, iter : ${aggregates}">
+                            <td class="text-muted" th:text="${iter.count}">1</td>
+                            <td>
+                                <div class="fw-bold text-white fs-6" th:text="${agg.facultyName}">Faculty Name</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark border border-secondary text-light" th:text="${agg.departmentName != null ? agg.departmentName : 'General'}">Department</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-danger" th:text="${agg.courseCode}">CS101</span>
+                                <span class="small text-white-50 ms-1" th:text="${agg.courseName}">Course Name</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-bold fs-5 text-warning" th:text="${#numbers.formatDecimal(agg.avgRating, 1, 1)}">4.5</span>
+                                    <span class="text-warning">
+                                        <i class="bi bi-star-fill"></i>
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary text-white" th:text="${agg.totalReviews + ' ratings'}">5 ratings</span>
+                            </td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" th:data-bs-target="'#commentsModal' + ${iter.index}">
+                                    <i class="bi bi-chat-quote-fill me-1"></i> View Comments (<span th:text="${#lists.size(agg.anonymousComments)}">0</span>)
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Anonymous Comments Modals (Placed outside cards before </body>) -->
+<th:block th:each="agg, iter : ${aggregates}">
+    <div class="modal fade" th:id="'commentsModal' + ${iter.index}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content card-theme border-danger">
+                <div class="modal-header border-secondary">
+                    <div>
+                        <h5 class="modal-title text-white fw-bold">
+                            <i class="bi bi-chat-quote text-danger me-2"></i>Anonymous Student Comments
+                        </h5>
+                        <div class="small text-muted">
+                            Faculty: <strong class="text-white" th:text="${agg.facultyName}">Instructor</strong> |
+                            Course: <span th:text="${agg.courseCode + ' - ' + agg.courseName}">CS101</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div th:if="${#lists.isEmpty(agg.anonymousComments)}" class="text-center py-4 text-muted">
+                        <i class="bi bi-chat-left-dots fs-2 d-block mb-2 text-secondary"></i>
+                        No written comments provided for this course.
+                    </div>
+                    <div th:unless="${#lists.isEmpty(agg.anonymousComments)}" class="d-flex flex-column gap-3">
+                        <div th:each="comm : ${agg.anonymousComments}" class="p-3 rounded border border-secondary" style="background: #121212;">
+                            <div class="d-flex align-items-center mb-1 text-muted small">
+                                <i class="bi bi-incognito text-warning me-2 fs-6"></i>
+                                <span>Verified Anonymous Student</span>
+                            </div>
+                            <p class="text-white mb-0" style="white-space: pre-line;" th:text="${comm}">Student feedback comment here.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

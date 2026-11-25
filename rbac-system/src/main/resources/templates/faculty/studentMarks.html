@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Student Marks')}">
+    <title>Faculty - Student Marks</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="app-container">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="app-content" th:fragment="content">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Portal</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/faculty/students}">Students</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Student Marks</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1 text-white">
+                    Student Marks <span class="text-danger small" th:text="'(Student ID: ' + ${studentId} + ')'"></span>
+                </h1>
+                <p class="text-muted mb-0">Record, edit and review academic performance for this student</p>
+            </div>
+            <div>
+                <a th:href="@{/faculty/students}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Students
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+            <span th:text="${success}">Mark added.</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i>
+            <span th:text="${error}">An error occurred.</span>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="row g-4">
+            <!-- Add Mark Form -->
+            <div class="col-lg-5" th:if="${sessionUser != null and sessionUser.permissions.contains('MARKS_ADD')}">
+                <div class="card card-theme p-4 h-100">
+                    <h5 class="fw-bold mb-3 text-white"><i class="bi bi-plus-circle text-danger me-2"></i>Add Student Mark</h5>
+                    <form method="post" th:action="@{/faculty/student/marks/add}" class="p-0 m-0 bg-transparent shadow-none border-0">
+                        <input type="hidden" name="studentId" th:value="${studentId}" />
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-white">Subject Name</label>
+                            <input type="text" name="subject" class="form-control" placeholder="e.g. Mathematics, Physics" required />
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-white">Score / Marks</label>
+                            <input type="number" name="marks" class="form-control" placeholder="0 - 100" min="0" max="100" required />
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-save me-1"></i> Submit Mark
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Existing Marks Table -->
+            <div th:class="${sessionUser != null and sessionUser.permissions.contains('MARKS_ADD')} ? 'col-lg-7' : 'col-12'">
+                <div class="card card-theme p-0 overflow-hidden h-100">
+                    <div class="p-3 border-bottom" style="background-color: #161616; border-color: #2a2a2a !important;">
+                        <h6 class="fw-bold mb-0 text-white"><i class="bi bi-award-fill text-danger me-2"></i>Recorded Subject Scores</h6>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-theme mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th style="width: 120px;">Score</th>
+                                    <th style="width: 160px;" th:if="${sessionUser != null and sessionUser.permissions.contains('MARKS_ADD')}">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(marks)}">
+                                    <td th:colspan="${sessionUser != null and sessionUser.permissions.contains('MARKS_ADD')} ? '3' : '2'" class="text-center py-4 text-muted">
+                                        <i class="bi bi-inbox fs-3 d-block mb-2 text-danger"></i>
+                                        No marks recorded for this student yet.
+                                    </td>
+                                </tr>
+                                <tr th:each="m : ${marks}">
+                                    <td class="fw-semibold text-white" th:text="${m.subject}">Subject</td>
+                                    <td>
+                                        <span class="badge badge-dark-custom fs-6 px-3 py-2" th:text="${m.marks}">85</span>
+                                    </td>
+                                    <td th:if="${sessionUser != null and sessionUser.permissions.contains('MARKS_ADD')}">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <!-- Edit Button -->
+                                            <a th:href="@{'/faculty/student/marks/' + ${m.id} + '/edit'}" class="btn btn-sm btn-primary" title="Edit Mark">
+                                                <i class="bi bi-pencil-fill"></i>
+                                            </a>
+                                            <!-- Delete Button opens Modal -->
+                                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" th:data-bs-target="'#deleteMarkModal-' + ${m.id}" title="Delete Mark">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(marks)}">
+                                    <td th:colspan="${sessionUser != null and sessionUser.permissions.contains('MARKS_ADD')} ? 3 : 2" class="text-center text-muted py-4">
+                                        No marks recorded yet for this student.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Row-level Delete Mark Modals (Placed outside containers before closing body) -->
+<th:block th:each="m : ${marks}">
+    <div class="modal fade" th:id="'deleteMarkModal-' + ${m.id}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-theme p-3 text-start">
+                <div class="modal-header border-bottom border-dark pb-2">
+                    <h5 class="modal-title text-white fw-bold">
+                        <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirm Deletion
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-3">
+                    <p class="text-white mb-1">Are you sure you want to delete this mark record?</p>
+                    <p class="text-muted small mb-0">
+                        Subject: <strong class="text-white" th:text="${m.subject}"></strong> | Score: <strong class="text-white" th:text="${m.marks}"></strong>
+                    </p>
+                </div>
+                <div class="modal-footer border-top border-dark pt-2 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form th:action="@{'/faculty/student/marks/' + ${m.id} + '/delete'}" method="post" class="p-0 m-0 bg-transparent border-0 shadow-none">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-trash-fill me-1"></i>Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>

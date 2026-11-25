@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('My Student Feedback')}">
+    <title>My Student Feedback</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="app-container">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="app-content">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Portal</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Faculty Feedback</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1 text-white">My Course Evaluations &amp; Feedback</h1>
+                <p class="text-muted mb-0">Student reviews and ratings for your assigned courses</p>
+            </div>
+            <div>
+                <span class="badge bg-dark border border-secondary text-white-50 p-2">
+                    <i class="bi bi-shield-lock-fill text-warning me-1"></i> Anonymous Evaluations
+                </span>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(aggregates)}" class="card card-theme p-5 text-center text-muted">
+            <i class="bi bi-star fs-1 d-block mb-3 text-secondary"></i>
+            <h5 class="text-white fw-bold">No Evaluations Yet</h5>
+            <p class="mb-0">Students enrolled in your courses haven't submitted evaluation ratings yet.</p>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(aggregates)}" class="row g-4">
+            <div th:each="agg, iter : ${aggregates}" class="col-lg-6">
+                <div class="card card-theme h-100 p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <span class="badge bg-danger mb-1" th:text="${agg.courseCode}">CS101</span>
+                                <h5 class="card-title fw-bold text-white mb-0" th:text="${agg.courseName}">Course Name</h5>
+                            </div>
+                            <div class="text-end">
+                                <div class="d-flex align-items-center justify-content-end gap-1">
+                                    <span class="fw-bold fs-4 text-warning" th:text="${#numbers.formatDecimal(agg.avgRating, 1, 1)}">4.8</span>
+                                    <span class="text-warning fs-5">★</span>
+                                </div>
+                                <span class="badge bg-secondary text-white small" th:text="${agg.totalReviews + ' ratings'}">10 ratings</span>
+                            </div>
+                        </div>
+
+                        <h6 class="text-white-50 fw-bold small text-uppercase mb-2"><i class="bi bi-chat-left-quote me-1"></i>Student Comments</h6>
+                        <div th:if="${#lists.isEmpty(agg.anonymousComments)}" class="small text-muted py-2">
+                            No student comments written yet.
+                        </div>
+                        <div th:unless="${#lists.isEmpty(agg.anonymousComments)}" class="d-flex flex-column gap-2" style="max-height: 250px; overflow-y: auto;">
+                            <div th:each="comm : ${agg.anonymousComments}" class="p-3 rounded border border-secondary" style="background: #121212;">
+                                <div class="small text-muted mb-1"><i class="bi bi-incognito text-warning me-1"></i>Anonymous Student:</div>
+                                <p class="text-white small mb-0" style="white-space: pre-line;" th:text="${comm}">Student comment text</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

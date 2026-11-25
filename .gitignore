@@ -1,0 +1,70 @@
+# Compiled class files
+*.class
+
+# Log files
+*.log
+log.txt
+
+# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Virtual machine crash logs
+hs_err_pid*
+replay_pid*
+
+# Maven build directory
+target/
+**/target/
+
+# Uploaded files
+uploads/
+**/uploads/
+downloads/
+**/downloads/
+
+# Test cookie & temporary session tokens
+*.txt
+!README.md
+!DOCUMENTATION.md
+cookies.txt
+fac_cookies.txt
+stu_cookies.txt
+test_stu.txt
+test_stu2.txt
+
+# Temporary / Binary assignment files
+ASSIGNMENT 3.pdf
+assignement pic.jpeg
+*.pdf
+*.jpeg
+*.jpg
+*.png
+
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE & Editor files
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Git backups
+.git_backup/
+extracted_zip/

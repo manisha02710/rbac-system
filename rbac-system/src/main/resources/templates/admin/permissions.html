@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Permissions</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+<body>
+<div class="container">
+    <nav th:replace="fragments/sidebar :: sidebar"></nav>
+    <main class="content" th:fragment="content">
+        <h1>Permissions</h1>
+        <p>This page can be used to list all system permissions if needed.</p>
+        <!-- No controller supplies data; placeholder only -->
+    </main>
+</div>
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

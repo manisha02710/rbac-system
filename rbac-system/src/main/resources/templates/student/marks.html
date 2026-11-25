@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('My Marks')}">
+    <title>Student Marks</title>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="app-container">
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <main class="app-content" th:fragment="content">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}">Portal</a></li>
+                <li class="breadcrumb-item active" aria-current="page">My Marks</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-1 text-white">Academic Performance</h1>
+                <p class="text-muted mb-0">Review your registered course scores and evaluation results</p>
+            </div>
+        </div>
+
+        <!-- Subject Marks Bar Chart (Student Role Only) -->
+        <div th:if="${sessionUser != null and sessionUser.student and !#lists.isEmpty(marks)}" class="card card-theme p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold text-white mb-0">
+                    <i class="bi bi-bar-chart-fill text-danger me-2"></i>Marks per Subject
+                </h5>
+                <span class="badge badge-dark-custom">Academic Evaluation</span>
+            </div>
+            <div style="height: 260px; position: relative;">
+                <canvas id="studentMarksBarChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card card-theme p-0 overflow-hidden">
+            <div class="p-3 border-bottom d-flex align-items-center justify-content-between" style="background-color: #161616; border-color: #2a2a2a !important;">
+                <h6 class="fw-bold mb-0 text-white"><i class="bi bi-award-fill text-danger me-2"></i>Official Subject Marks</h6>
+                <span class="badge badge-dark-custom">Verified</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-theme mb-0">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th style="width: 180px;">Score</th>
+                            <th style="width: 180px;">Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="m : ${marks}">
+                            <td class="fw-semibold text-white" th:text="${m.subject}">Subject</td>
+                            <td>
+                                <span class="badge badge-dark-custom fs-6 px-3 py-2" th:text="${m.marks}">85</span>
+                            </td>
+                            <td>
+                                <span th:if="${m.marks >= 75}" class="badge bg-success text-white">Excellent</span>
+                                <span th:if="${m.marks >= 50 and m.marks < 75}" class="badge bg-secondary text-white">Good</span>
+                                <span th:if="${m.marks < 50}" class="badge bg-danger text-white">Needs Improvement</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(marks)}">
+                            <td colspan="3" class="text-center text-muted py-5">
+                                <i class="bi bi-award fs-2 d-block mb-2 text-danger"></i>
+                                <span class="fs-6 d-block mb-1">No marks recorded</span>
+                                <span class="small text-muted">No marks have been recorded for your registered subjects yet.</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const subjects = [];
+    const scores = [];
+
+    document.querySelectorAll('table tbody tr').forEach(tr => {
+        const tds = tr.querySelectorAll('td');
+        if (tds.length >= 2) {
+            const subject = tds[0].innerText.trim();
+            const score = parseFloat(tds[1].innerText.trim());
+            if (subject && !isNaN(score)) {
+                subjects.push(subject);
+                scores.push(score);
+            }
+        }
+    });
+
+    const canvas = document.getElementById('studentMarksBarChart');
+    if (canvas && subjects.length > 0 && typeof Chart !== 'undefined') {
+        new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: subjects,
+                datasets: [{
+                    label: 'Score (out of 100)',
+                    data: scores,
+                    backgroundColor: 'rgba(217, 4, 41, 0.75)',
+                    borderColor: '#d90429',
+                    borderWidth: 1.5,
+                    borderRadius: 6,
+                    hoverBackgroundColor: '#ef233c'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                        ticks: { color: '#b5b5b5', font: { family: "'Poppins', sans-serif" } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#ffffff', font: { family: "'Poppins', sans-serif" } }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: { color: '#ffffff', font: { family: "'Poppins', sans-serif" } }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` Score: ${context.raw} / 100`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+</body>
+</html>
